@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#5a0808">
+<title>ManU Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#3a0505;overscroll-behavior:none;overflow:hidden}
+body{font-family:Nunito,system-ui,sans-serif;font-weight:600;color:#fff;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:10px 14px 12px;
+ background:radial-gradient(circle at 50% 0,#8a1010,#5a0808 60%);overflow:hidden;position:relative}
+#app.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-9px) rotate(-.6deg)}40%{transform:translateX(9px) rotate(.6deg)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+h1,h2,.big,.btn,.who{font-family:"Lilita One",Impact,sans-serif;font-weight:400;letter-spacing:.5px}
+#h1{font-size:30px;color:#ffd21f;text-align:center;line-height:1;text-shadow:0 3px 0 #1a1010}
+#h2{font-size:13px;text-align:center;opacity:.85;margin:3px 0 7px}
+#stats{display:flex;gap:8px}
+.st{flex:1;text-align:center;font-size:11px;font-weight:800;position:relative}
+.bar{height:12px;border-radius:7px;background:rgba(0,0,0,.45);overflow:hidden;margin-top:2px}
+.bar i{display:block;height:100%;width:50%;border-radius:7px;transition:width .5s cubic-bezier(.3,1.6,.5,1)}
+.st em{position:absolute;left:0;right:0;top:26px;font-style:normal;font-size:14px;font-weight:800;opacity:0;pointer-events:none}
+.st em.go{animation:pop 1.8s}
+@keyframes pop{0%{opacity:0;transform:translateY(6px) scale(.6)}15%{opacity:1;transform:none}70%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
+#face{width:100%;height:118px;flex:none;margin-top:6px}
+#panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:9px;overflow-y:auto;animation:in .3s}
+@keyframes in{from{opacity:0;transform:translateY(14px)}}
+.card{background:#fff4dc;color:#1a1010;border:4px solid #1a1010;border-bottom-width:8px;border-radius:20px;padding:13px 15px;text-align:center;
+ font-size:17px;line-height:1.3;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:6px;overflow-y:auto}
+.card.slim{flex:none}
+.who{color:#b01515;font-size:15px;text-transform:uppercase}
+.card p{margin:0}.match{font-size:15px;background:#1a1010;color:#ffd21f;border-radius:12px;padding:8px 10px}
+.btn{display:block;width:100%;border:4px solid #1a1010;border-bottom-width:8px;border-radius:17px;background:#ffd21f;color:#1a1010;
+ font-size:19px;padding:13px 10px;min-height:58px;cursor:pointer;transition:transform .08s;flex:none;touch-action:manipulation}
+.btn.w{background:#fff}.btn.g{background:#7ee08a}
+.btn:active{transform:translateY(4px);border-bottom-width:4px;margin-bottom:4px}
+.btn[disabled]{opacity:.5}
+#toast{position:absolute;left:50%;top:128px;transform:translate(-50%,-50%) scale(0) rotate(-4deg);background:#1a1010;color:#ffd21f;border:3px solid #ffd21f;
+ border-radius:16px;padding:10px 14px;font-size:16px;font-weight:800;text-align:center;width:82%;pointer-events:none;transition:transform .25s cubic-bezier(.3,1.7,.5,1);z-index:9}
+#toast.on{transform:translate(-50%,-50%) scale(1) rotate(-2deg)}
+/* formation */
+.pitch{position:relative;flex:1;min-height:210px;border:4px solid #1a1010;border-radius:16px;overflow:hidden;touch-action:none;
+ background:repeating-linear-gradient(#2f9e4b 0 12.5%,#2a9044 12.5% 25%)}
+.pitch:before{content:"";position:absolute;inset:6px;border:2px solid rgba(255,255,255,.55);border-radius:6px}
+.pitch:after{content:"";position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px;border:2px solid rgba(255,255,255,.55);border-radius:50%;box-shadow:0 0 0 0 #fff}
+.half{position:absolute;left:6px;right:6px;top:50%;border-top:2px solid rgba(255,255,255,.55)}
+.zone{position:absolute;left:10px;font-size:10px;font-weight:800;opacity:.6;letter-spacing:1px}
+.dot{position:absolute;width:38px;height:38px;margin:-19px;border-radius:50%;background:#d81e1e;border:3px solid #1a1010;color:#fff;font:400 15px "Lilita One",sans-serif;
+ display:flex;align-items:center;justify-content:center;transition:left .7s cubic-bezier(.4,1.5,.5,1),top .7s cubic-bezier(.4,1.5,.5,1);touch-action:none;cursor:grab;z-index:2}
+.dot.drag{transition:none;transform:scale(1.25);z-index:5;box-shadow:0 8px 0 rgba(0,0,0,.3)}
+.dot.gk{background:#ffd21f;color:#1a1010}
+.fline{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:800}
+.fline b{font:400 22px "Lilita One",sans-serif;color:#ffd21f}
+/* transfers */
+.tgt{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ffe98a,#ffd21f 50%,#e0a800);color:#1a1010;border:4px solid #1a1010;border-bottom-width:7px;
+ border-radius:16px;padding:9px 12px;text-align:left;cursor:pointer;flex:none}
+.tgt .r{font:400 30px "Lilita One",sans-serif;width:46px;text-align:center}
+.tgt small{display:block;font-size:12px;opacity:.75}.tgt .p{margin-left:auto;font:400 17px "Lilita One",sans-serif}
+.steps{text-align:left;font-size:16px;font-weight:800}.steps div{opacity:0;transform:translateX(-10px);transition:.3s;margin:5px 0}.steps div.on{opacity:1;transform:none}
+.hwg{font:400 34px "Lilita One",sans-serif;color:#b01515;animation:wob .5s infinite alternate}
+@keyframes wob{from{transform:rotate(-4deg) scale(.95)}to{transform:rotate(4deg) scale(1.08)}}
+.dud{background:#b8b0a0;border-radius:14px;padding:10px;border:3px dashed #1a1010}
+.dud .r{font:400 40px "Lilita One",sans-serif;color:#b01515;line-height:1}
+/* press */
+.q{font-size:16px}
+.ans{display:flex;flex-direction:column;gap:8px;flex:none}
+.sens{transition:transform .2s,opacity .2s}.sens.wig{animation:wig .3s}
+@keyframes wig{30%{transform:translateX(-30px) rotate(-8deg)}70%{transform:translateX(30px) rotate(8deg)}}
+/* sub */
+.pl{display:flex;align-items:center;gap:8px;background:#fff;color:#1a1010;border:3px solid #1a1010;border-bottom-width:6px;border-radius:14px;padding:8px 11px;font-size:15px;font-weight:800;cursor:pointer;flex:none}
+.pl b{font:400 20px "Lilita One",sans-serif;width:34px}.pl span{margin-left:auto;white-space:nowrap;font-size:12px;background:#d81e1e;color:#fff;border-radius:8px;padding:3px 7px}
+.led{background:#111;border:5px solid #333;border-radius:14px;color:#ff3b30;font:400 74px "Lilita One",monospace;line-height:1;padding:8px 0;text-shadow:0 0 14px #ff3b30;letter-spacing:4px}
+.led small{display:block;font-size:16px;color:#3bff6a;text-shadow:0 0 8px #3bff6a;letter-spacing:1px}
+/* var */
+.var{position:relative;height:150px;flex:none;border:4px solid #1a1010;border-radius:14px;overflow:hidden;background:repeating-linear-gradient(90deg,#2f9e4b 0 10%,#2a9044 10% 20%)}
+.var .ln{position:absolute;top:0;bottom:0;width:4px;margin-left:-2px;background:#ffd21f;box-shadow:0 0 0 2px rgba(0,0,0,.35);transition:left .08s linear}
+.var .ln.auto{transition:left 1.1s cubic-bezier(.5,-.4,.3,1.4)}
+.var .m{position:absolute;width:30px;height:30px;margin:-15px;border-radius:50%;border:3px solid #1a1010;top:50%;transition:left .08s linear}
+.var .at{background:#d81e1e;top:36%}.var .df{background:#6cc8ff;top:80%}
+.var .tag{position:absolute;font-size:10px;font-weight:800;background:#1a1010;border-radius:6px;padding:1px 5px;transform:translate(-50%,-34px);white-space:nowrap}
+input[type=range]{width:100%;height:40px;accent-color:#ffd21f;flex:none}
+/* talk */
+.meter{position:relative;height:44px;flex:none;border:4px solid #1a1010;border-radius:14px;overflow:hidden;background:linear-gradient(90deg,#6cc8ff,#fff 50%,#ff5a3c)}
+.meter .zn{position:absolute;top:0;bottom:0;background:rgba(60,220,100,.9);border-left:3px solid #1a1010;border-right:3px solid #1a1010;transition:left .12s}
+.meter .nd{position:absolute;top:-4px;bottom:-4px;width:8px;margin-left:-4px;background:#1a1010;border-radius:4px}
+.lab{display:flex;justify-content:space-between;font-size:11px;font-weight:800;opacity:.85}
+.sack{font:400 44px "Lilita One",sans-serif;color:#b01515;line-height:1;animation:wob .6s infinite alternate}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="h1">ManU MANAGER</div>
+  <div id="h2"></div>
+  <div id="stats"></div>
+  <canvas id="face"></canvas>
+  <div id="panel"></div>
+  <div id="toast"></div>
+</div>
+<script>
+const D=__DATA__;
+const STATS=["fans","board","squad","press"], COL={fans:"#ffd21f",board:"#6ee07a",squad:"#6cc8ff",press:"#ff8fd0"};
+const $=s=>document.querySelector(s), panel=$("#panel"), app=$("#app");
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a, pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+let S={},week=0,days=0,best=0,state="title",run=0;
+try{best=+localStorage.getItem("manu_best")||0}catch(e){}
+
+/* ---------- sound (tiny synth, only after a tap) ---------- */
+let AC;function beep(f,d=.08,t="square",v=.05,when=0){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+ const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;o.connect(g);g.connect(AC.destination);
+ const s=AC.currentTime+when;o.start(s);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.stop(s+d)}catch(e){}}
+const sfx={tap:()=>beep(520,.05),good:()=>{beep(660,.08);beep(880,.12,"square",.05,.08)},bad:()=>{beep(180,.18,"sawtooth",.06)},
+ sack:()=>[392,370,349,220].forEach((f,i)=>beep(f,i==3?.7:.28,"sawtooth",.06,i*.3)),ta:()=>[523,659,784,1047].forEach((f,i)=>beep(f,.12,"square",.05,i*.09))};
+
+/* ---------- UI plumbing ---------- */
+$("#stats").innerHTML=STATS.map(s=>`<div class="st" style="color:${COL[s]}">${s.toUpperCase()}<div class="bar"><i id="b-${s}" style="background:${COL[s]}"></i></div><em id="d-${s}"></em></div>`).join("");
+function refresh(){STATS.forEach(s=>$("#b-"+s).style.width=S[s]+"%");
+ if(state=="play")$("#h2").textContent=`Week ${week} · Day ${days} in the job · Record: ${best} days`}
+function mood(){if(state=="sacked")return 0;const v=STATS.map(s=>S[s]);return Math.max(0,Math.min(1,(v.reduce((a,b)=>a+b)/4+Math.min(...v))/200+.15))}
+function show(html){panel.innerHTML=html;panel.style.animation="none";panel.offsetHeight;panel.style.animation="";panel.scrollTop=0}
+function toast(t,ms=1900){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),ms)}
+function shake(){app.classList.remove("shake");app.offsetHeight;app.classList.add("shake");shock=1}
+function apply(fx){const pr=1+week*.035;let hurt=false;for(const s in fx){let v=fx[s];if(v<0){v*=pr;hurt=true}v=Math.round(v);
+  S[s]=Math.max(0,Math.min(100,S[s]+v));if(v){const e=$("#d-"+s);e.textContent=(v>0?"+":"")+v;e.style.color=v>0?"#7dff8a":"#ff6b5e";e.classList.remove("go");e.offsetHeight;e.classList.add("go")}}
+ if(hurt){shake();sfx.bad()}else sfx.good();refresh()}
+function sackReason(){for(const s of STATS)if(S[s]<=0)return D.SACK_LOW[s];for(const s of STATS)if(S[s]>=100)return D.SACK_HIGH[s];return ""}
+function playMatch(){const opp=pick(D.OPPONENTS),r=Math.random(),win=.12+S.squad/170;
+ if(r<win){apply({fans:4,board:2});return `MATCHDAY: Won ${rnd(2,5)}-${rnd(0,1)} v ${opp}. ${pick(D.WIN)}`}
+ if(r<win+.22){const g=rnd(0,3);apply({fans:-2});return `MATCHDAY: Drew ${g}-${g} v ${opp}. ${pick(D.DRAW)}`}
+ apply({fans:-5,press:-4,board:-2});return `MATCHDAY: Lost ${rnd(0,1)}-${rnd(2,7)} v ${opp}. ${pick(D.LOSS)}`}
+function finish(who,text,fx,match=true){apply(fx||{});let m="";if(match&&!sackReason())m=`<p class="match">${esc(playMatch())}</p>`;
+ const dead=sackReason();
+ show(`<div class="card"><div class="who">${esc(who)}</div><p>${esc(text)}</p>${m}</div><button class="btn" id="nx">${dead?"UH OH…":"NEXT WEEK ▶"}</button>`);
+ $("#nx").onclick=()=>{sfx.tap();dead?sacked(dead):nextWeek()}}
+
+/* ---------- flow ---------- */
+function title(){state="title";STATS.forEach(s=>S[s]=50);week=0;refresh();$("#h1").textContent="ManU MANAGER";
+ $("#h2").textContent=`The Impossible Job · Record: ${best} days`;
+ show(`<div class="card"><div class="who">Congratulations (?)</div><p>You are the new ManU manager.</p><p>Pick the team. Sign players. Face the press. Keep the <b>FANS</b>, <b>BOARD</b>, <b>SQUAD</b> and <b>PRESS</b> happy.</p><p>Not <i>too</i> happy though. That also ends badly.</p></div><button class="btn" id="go">SIGN THE CONTRACT ✍️</button>`);
+ $("#go").onclick=start}
+function start(){sfx.ta();state="play";run++;STATS.forEach(s=>S[s]=50);week=0;days=0;deck=[];bag=[];firstTransfer=run==1;$("#h1").textContent="ManU MANAGER";nextWeek()}
+let deck=[],bag=[],firstTransfer=true;
+function nextWeek(){week++;days+=rnd(5,9);refresh();let g;
+ if(week==1)g=gFormation;else if(week==3)g=gTransfer;
+ else if(week%2==0)g=gCard;
+ else{if(!bag.length)bag=shuffle(GAMES);g=bag.pop()}
+ g()}
+function sacked(reason){state="sacked";let rank="";for(const r of D.RANKS)if(days>=r[0])rank=r[1];const rec=days>best;
+ if(rec){best=days;try{localStorage.setItem("manu_best",best)}catch(e){}}
+ sfx.sack();shake();$("#h1").textContent="SACKED!";$("#h2").textContent=`You lasted ${days} days (${week} weeks)`;
+ const msg=`I lasted ${days} days as ManU manager before getting sacked. ${rank}`;
+ show(`<div class="card"><div class="sack">${days} DAYS</div><div class="who">${rec?"New record!":"Official club statement"}</div><p>${esc(reason)}</p><p><b>${esc(rank)}</b></p></div>
+ <button class="btn w" id="cp">COPY MY SHAME 📋</button><button class="btn" id="go">GET REHIRED (somehow)</button>`);
+ $("#go").onclick=start;$("#cp").onclick=async e=>{try{await navigator.clipboard.writeText(msg);e.target.textContent="COPIED. GO BRAG."}catch(x){e.target.textContent=msg}}}
+
+/* ---------- 1. desk events (two terrible options) ---------- */
+function gCard(){if(!deck.length)deck=shuffle(D.EVENTS);const ev=deck.pop();
+ show(`<div class="card"><div class="who">${esc(ev.who)}</div><p>${esc(ev.text)}</p></div><button class="btn" id="a">${esc(ev.a.label)}</button><button class="btn w" id="b">${esc(ev.b.label)}</button>`);
+ for(const k of "ab")$("#"+k).onclick=()=>finish("What happened next",ev[k].out,ev[k].fx)}
+
+/* ---------- 2. formation board: you drag, the Tactics Dept "fixes" it ---------- */
+const NOPE=["Tactics Dept: 4 at the back? What is this, 1994? Fixed it.","Auto-corrected. Defenders are a mindset.","We noticed you tried to defend. Don't.","The laptop says no.","2 at the back is PLENTY. One, really.","Stop. Dragging. Him. Back.","Defending is for teams who don't believe in themselves.","He's happier up front. Look at his little face."];
+const SHAPES=[
+ {n:"2-0-8",q:"2-0-8. Perfection. No notes. The midfield was only slowing you down.",f:i=>i<2?[30+i*40,80]:[14+((i-2)%4)*24,i<6?12:27]},
+ {n:"2-1-7",q:"2-1-7. That one lad in midfield? He's the 'engine room'. All of it.",f:i=>i<2?[30+i*40,80]:i==2?[50,52]:[11+(i-3)*13,16+(i%2)*10]},
+ {n:"2-0-0-8 (The Mosh Pit)",q:"Everyone in their box. Nobody anywhere else. This is, objectively, the best formation.",f:i=>i<2?[30+i*40,80]:[38+((i-2)%4)*8,8+Math.floor((i-2)/4)*9]},
+ {n:"2-8-0 (The Conga)",q:"A conga line across halfway. Unbreakable. Unbeatable. Unwatchable.",f:i=>i<2?[30+i*40,80]:[9+(i-2)*11.7,50+((i%2)*6-3)]},
+ {n:"2-0-8 (Keeper Up Top)",q:"We've also moved the goalkeeper up front. His shooting stat is underrated.",gk:[50,20],f:i=>i<2?[30+i*40,80]:[14+((i-2)%4)*24,i<6?8:32]}];
+function gFormation(){
+ const start=[[14,78],[38,80],[62,80],[86,78],[14,52],[38,54],[62,54],[86,52],[36,24],[64,24]];
+ show(`<div class="fline"><span>Pick your formation. Drag the lads.</span><b id="fm">4-4-2</b></div>
+ <div class="pitch" id="pt"><div class="half"></div><div class="zone" style="top:8px">ATTACK</div><div class="zone" style="bottom:8px">DEFENCE</div>
+ ${start.map((p,i)=>`<div class="dot" data-i="${i}" style="left:${p[0]}%;top:${p[1]}%">${i+2}</div>`).join("")}<div class="dot gk" id="gk" style="left:50%;top:93%">1</div></div>
+ <button class="btn" id="lock">LOCK IT IN 🔒</button>`);
+ const pt=$("#pt"),P=start.map(p=>[...p]),dots=[...pt.querySelectorAll(".dot[data-i]")];let nopes=0,locked=false,alive=true;
+ const set=(i,x,y)=>{P[i]=[x,y];dots[i].style.left=x+"%";dots[i].style.top=y+"%"};
+ const label=()=>{const d=P.filter(p=>p[1]>66).length,a=P.filter(p=>p[1]<34).length;$("#fm").textContent=`${d}-${10-d-a}-${a}`;return d};
+ const fix=(only)=>{if(locked||!pt.isConnected)return;const defs=P.map((p,i)=>[p[1],i]).filter(d=>d[0]>66).sort((a,b)=>b[0]-a[0]);if(defs.length<=2)return;
+  const movers=only!=null?[only]:shuffle(defs.map(d=>d[1])).slice(0,defs.length-2);
+  movers.forEach(i=>set(i,rnd(12,88),rnd(8,28)));label();toast(NOPE[Math.min(nopes++,NOPE.length-1)]);sfx.bad()};
+ setTimeout(()=>fix(),1300);
+ dots.forEach((d,i)=>{let on=false;
+  d.onpointerdown=e=>{if(locked)return;on=true;d.setPointerCapture(e.pointerId);d.classList.add("drag");sfx.tap()};
+  d.onpointermove=e=>{if(!on)return;const r=pt.getBoundingClientRect();
+   P[i]=[Math.max(6,Math.min(94,(e.clientX-r.left)/r.width*100)),Math.max(5,Math.min(86,(e.clientY-r.top)/r.height*100))];d.style.left=P[i][0]+"%";d.style.top=P[i][1]+"%";label()};
+  d.onpointerup=d.onpointercancel=()=>{if(!on)return;on=false;d.classList.remove("drag");if(label()>2)setTimeout(()=>fix(P[i][1]>66?i:null),350)}});
+ $("#lock").onclick=async e=>{if(locked)return;locked=true;e.target.disabled=true;const you=$("#fm").textContent,sh=pick(SHAPES);
+  toast("Sending to Tactics Dept for 'a quick look'…",1300);await wait(1300);if(!pt.isConnected)return;
+  P.forEach((_,i)=>{const p=sh.f(i);set(i,p[0],p[1])});if(sh.gk){$("#gk").style.left=sh.gk[0]+"%";$("#gk").style.top=sh.gk[1]+"%"}
+  $("#fm").textContent=sh.n.split(" ")[0];sfx.ta();toast("✅ AUTO-CORRECTED",1400);await wait(1700);if(!pt.isConnected)return;
+  finish("Tactics Department",`You submitted ${you}. It has been improved to ${sh.n}. ${sh.q}`,pick([{squad:-6,fans:6,press:5},{squad:-8,board:6,fans:3},{fans:-7,press:8,squad:-3}]))}}
+
+/* ---------- 3. transfer market: here we go… oh no ---------- */
+const TARGETS=[["Zlatko Thunderfoot","ST",94,120],["Enzo Galáctico","CM",92,95],["Kai Wunderkind","LW",91,88],["Björn Wallsson","CB",93,80],["Marcelo Golazo","RW",90,105],["Dmitri Rocketov","ST",92,110]];
+const DUDS=[
+ {n:"Barry \"The Bat\" Nobbs",from:"God Knows Where FC",r:11,t:"Cannot see. At all. Not the ball, not the goal, not you. Passed the medical because his agent held the eye chart. Shook hands with a coat stand at his unveiling.",fx:{board:-12,squad:-7,press:8}},
+ {n:"A Man Called Dave",from:"The Queue At The Club Shop",r:9,t:"Nobody knows how Dave got into the deal. Dave thought he was applying for a job on the tills. He has signed a 6-year contract.",fx:{board:-10,fans:6,squad:-6}},
+ {n:"João Not-That-One",from:"A Dental Practice in Porto",r:14,t:"Same name as the player you scouted. Different man. He is a dentist. To be fair, the squad's teeth have never looked better.",fx:{board:-11,squad:4,fans:-8}},
+ {n:"Sven Svensvensson",from:"Retirement (2009)",r:17,t:"The video you watched was from 2003. Sven is 54. He needs a sit down after the warm-up and calls everyone 'young man'.",fx:{board:-10,fans:5,squad:-5,press:5}},
+ {n:"Three Kids In A Long Coat",from:"Year 6",r:19,t:"Listed as '6ft 9 target man'. Wobbles a lot. Top kid does the interviews. Middle kid wants to go home.",fx:{board:-9,fans:8,press:6,squad:-6}},
+ {n:"Gary",from:"Unknown. Possibly Your Garden.",r:6,t:"Rated 6. Not 6 out of 10. Just 6. Scouts describe him as 'present'. His strongest foot is neither.",fx:{board:-12,fans:-6,squad:-5}}];
+let duds=[];
+function gTransfer(){const ts=shuffle(TARGETS).slice(0,3);
+ show(`<div class="card slim"><div class="who">Transfer window</div><p>The board has found <b>£${rnd(150,250)}m</b> down the back of the sofa. Sign a superstar.</p></div>
+ ${ts.map((t,i)=>`<div class="tgt" data-i="${i}"><div class="r">${t[2]}</div><div><b>${t[0]}</b><small>${t[1]} · World class · Wants to come</small></div><div class="p">£${t[3]}m</div></div>`).join("")}`);
+ panel.querySelectorAll(".tgt").forEach(el=>el.onclick=async()=>{const t=ts[+el.dataset.i];sfx.tap();
+  const steps=[`Bid of £${t[3]}m accepted`,"Personal terms agreed","Medical passed (suspiciously fast)","Paperwork faxed at 10:59pm","Shirt printed. Scarf held aloft."];
+  show(`<div class="card"><div class="who">Signing ${esc(t[0])}…</div><div class="steps">${steps.map(s=>`<div>✅ ${s}</div>`).join("")}</div><div id="hw"></div></div>`);
+  const ds=[...panel.querySelectorAll(".steps div")];
+  for(const d of ds){await wait(620);if(!d.isConnected)return;d.classList.add("on");beep(500+ds.indexOf(d)*90,.07)}
+  await wait(600);if(!$("#hw"))return;$("#hw").innerHTML=`<div class="hwg">HERE WE GO!</div>`;sfx.ta();await wait(1500);if(!$("#hw"))return;
+  if(!duds.length)duds=shuffle(DUDS.slice(1));const d=firstTransfer?DUDS[0]:duds.pop();firstTransfer=false;shake();sfx.bad();
+  show(`<div class="card"><div class="who">Unveiling your new £${t[3]}m signing</div><div class="dud"><div class="r">${d.r}</div><b>${esc(d.n)}</b><br><small>from ${esc(d.from)}</small></div>
+  <p>That is not ${esc(t[0])}.</p></div><button class="btn" id="k">…WHO IS THAT?</button>`);
+  $("#k").onclick=()=>finish("Head of Recruitment",`"All the paperwork went through perfectly, boss." ${d.t} The fee is non-refundable.`,d.fx)})}
+
+/* ---------- 4. press conference: the sensible answer runs away ---------- */
+const PRESS=[
+ {q:"Gaffer, you just lost 4-0 to a team of part-time postmen. Your thoughts?",s:"We'll analyse it calmly and improve.",
+  d:[["The postmen had inside information.",{press:8,fans:4,board:-6},"ROYAL FAIL: MANAGER BLAMES POSTIES. The postmen's union demands an apology. They deliver it to the wrong address."],
+     ["I actually thought we won.",{press:-9,squad:5,fans:-4},"You are shown the scoreboard. You ask to see 'a different scoreboard'."]]},
+ {q:"Is it true you've lost the dressing room?",s:"No. The group is united.",
+  d:[["I know exactly where it is. Second door on the left.",{press:7,squad:-5,fans:5},"It was not the second door on the left. That was a cupboard. You gave the team talk to a mop."],
+     ["The dressing room has lost ME.",{press:9,squad:-8,board:-4},"Deep. Too deep. Three philosophy podcasts want you. The squad want you gone."]]},
+ {q:"What's your message to the fans tonight?",s:"Stick with us. We're working hard.",
+  d:[["Have you tried supporting someone else?",{fans:-15,press:10},"The clip has 40 million views. A man burns his season ticket on live TV. It was a library card. Still."],
+     ["Refunds are available from the board.",{fans:13,board:-15},"A queue of 70,000 forms outside the directors' entrance. The trenchcoat is furious."]]},
+ {q:"Your striker hasn't scored in 19 games. Is he undroppable?",s:"Every place is earned in training.",
+  d:[["He's scoring loads in my heart.",{squad:7,fans:-8,press:5},"He celebrates by not scoring again. Game 20."],
+     ["Goals are an outdated metric.",{press:8,fans:-7,board:4},"The analytics community hails you as a visionary. The league table does not."]]}];
+let pressBag=[];
+function gPress(){if(!pressBag.length)pressBag=shuffle(PRESS);const p=pressBag.pop();
+ const opts=shuffle([["s",p.s],["0",p.d[0][0]],["1",p.d[1][0]]]);
+ show(`<div class="card"><div class="who">📸 Press conference</div><p class="q">${esc(p.q)}</p></div><div class="ans" id="an">
+ ${opts.map(o=>o[0]=="s"?`<button class="btn g sens" id="se">${esc(o[1])}</button>`:`<button class="btn w" data-k="${o[0]}">${esc(o[1])}</button>`).join("")}</div>`);
+ const an=$("#an"),se=$("#se");let n=0;
+ const quips=["Nope. Your mouth refuses.","The sensible answer has left the building.","You physically cannot say it."];
+ se.onpointerdown=e=>{if(n>=3)return;e.preventDefault();n++;sfx.bad();toast(quips[n-1],1300);
+  const kids=[...an.children].filter(c=>c!=se);an.insertBefore(se,pick([...kids,null].filter(k=>k!=se.nextSibling)));
+  se.style.transform=`scale(${1-n*.12})`;se.classList.remove("wig");se.offsetHeight;se.classList.add("wig");
+  if(n==3){se.style.transform="";se.className="btn sens";se.textContent="NO COMMENT (leg it)";
+   setTimeout(()=>se.onclick=()=>finish("Press conference","You sprint out of the room mid-question. You take the microphone with you by accident. And the tablecloth.",{press:-7,fans:4}),250)}};
+ an.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const d=p.d[+b.dataset.k];finish("Tomorrow's back page",d[2],d[1])})}
+
+/* ---------- 5. substitution: the board has its own ideas ---------- */
+function gSub(){const sq=[["9","Star Striker",88],["47","The Academy Kid",84],["4","Club Captain",79],["3","Left Back (podcaster)",61],["5","Centre Back (own goals)",38]];
+ show(`<div class="card slim"><div class="who">70th minute · 0-0</div><p>Fresh legs needed. Who's coming off?</p></div>
+ ${sq.map((p,i)=>`<div class="pl" data-i="${i}"><b>${p[0]}</b>${p[1]} · ${p[2]}<span>TAKE OFF</span></div>`).join("")}`);
+ panel.querySelectorAll(".pl").forEach(el=>el.onclick=async()=>{const me=sq[+el.dataset.i];sfx.tap();
+  const outs=[["9","KIT MAN","The fourth official's board says 9. That's your Star Striker. \"Board's final, mate.\" On comes the kit man, still holding a bag of bibs.",{squad:-8,fans:-6,press:6}],
+   ["1","NOBODY","The board says 1. Your goalkeeper trudges off. There is no sub keeper. Your winger goes in goal wearing oven gloves.",{fans:-7,press:8,squad:-4}],
+   ["88","A STEWARD","The board malfunctions and shows 88. Nobody is number 88. A steward shrugs, takes off his hi-vis and comes on. Man of the match.",{fans:9,press:7,board:-5}],
+   ["47","HIS DAD","The board says 47. The Academy Kid is replaced by his dad, who has 'always fancied a go'. Dad pulls a hamstring during the handshake.",{fans:-5,squad:-5,press:7}]];
+  let o=pick(outs.filter(x=>x[0]!=me[0]));
+  show(`<div class="card"><div class="who">You asked for number ${me[0]} off</div><div class="led" id="led">${me[0]}<small>ON: —</small></div><p id="lt">Fourth official is typing it in…</p></div>`);
+  for(let i=0;i<9;i++){await wait(130);if(!$("#led"))return;$("#led").firstChild.textContent=rnd(1,99);beep(300+i*40,.04)}
+  $("#led").innerHTML=`${o[0]}<small>ON: ${o[1]}</small>`;$("#lt").textContent="…that's not what you asked for.";shake();sfx.bad();await wait(1500);if(!$("#led"))return;
+  finish("Substitution",o[2],o[3])})}
+
+/* ---------- 6. VAR: draw the line wherever you like. It won't matter. ---------- */
+function gVar(){const why=pick([["his fringe","The fringe was 4mm beyond the last defender. Rules are rules."],["his vibe","His body was level. His vibe had gone early."],
+  ["his shadow","His shadow was offside. It's a new directive. Nobody told you."],["his dad (1994)","VAR found his dad was offside in a Sunday League game in 1994. It carries over."]]);
+ show(`<div class="card slim"><div class="who">📺 VAR check · 89th minute winner</div><p>Great news: they're letting <b>you</b> draw the offside line. Drag it.</p></div>
+ <div class="var"><div class="m df" id="df" style="left:62%"><div class="tag" style="color:#6cc8ff">DEFENDER</div></div><div class="m at" id="at" style="left:50%"><div class="tag" style="color:#ff8f8f">YOUR LAD</div></div><div class="ln" id="ln" style="left:70%"></div></div>
+ <input type="range" id="sl" min="5" max="95" value="70"><button class="btn" id="ok">CHECK COMPLETE ✔</button>`);
+ const sl=$("#sl"),ln=$("#ln"),df=$("#df"),at=$("#at");
+ sl.oninput=()=>{const v=+sl.value;ln.style.left=v+"%";at.style.left=Math.min(95,v+6)+"%";df.style.left=Math.max(5,v-5)+"%"};
+ $("#ok").onclick=async e=>{e.target.disabled=true;sl.disabled=true;toast("VAR: 'Just having another look…'",1500);await wait(1400);if(!ln.isConnected)return;
+  ln.classList.add("auto");ln.style.left=(parseFloat(at.style.left)-3.5)+"%";await wait(1300);if(!ln.isConnected)return;toast("🚫 OFFSIDE: "+why[0].toUpperCase(),1500);shake();sfx.bad();await wait(1500);
+  finish("VAR decision",`Goal disallowed after an 11-minute review. ${why[1]} Wherever you put the line, your lad politely stepped past it. Final score: 0-0.`,pick([{fans:-7,press:5},{fans:-5,squad:-5,board:-3},{fans:6,press:-6,board:-4}]),false)}}
+
+/* ---------- 7. team talk: hit the green. (You won't.) ---------- */
+function gTalk(){show(`<div class="card slim"><div class="who">Half-time team talk · 0-2 down</div><p>Find the right level of passion. Stop the needle in the <b style="color:#1e9e44">green</b>.</p></div>
+ <div class="lab"><span>😴 WHISPER</span><span>JUST RIGHT</span><span>TEA URN 🫖</span></div><div class="meter"><div class="zn" id="zn" style="left:42%;width:16%"></div><div class="nd" id="nd"></div></div>
+ <button class="btn" id="st">STOP! ✋</button>`);
+ const nd=$("#nd"),zn=$("#zn");let x=0,dir=1,live=true,last=performance.now();
+ (function loop(t){if(!live||!nd.isConnected)return;x+=dir*(t-last)*.17;last=t;if(x>100){x=100;dir=-1}if(x<0){x=0;dir=1}nd.style.left=x+"%";requestAnimationFrame(loop)})(last);
+ $("#st").onclick=()=>{live=false;const zl=parseFloat(zn.style.left);if(x>zl-2&&x<zl+18){zn.style.left=(x<50?x+12:x-28)+"%";toast("The green bit moved. Honest.",1400)}
+  setTimeout(()=>{if(!nd.isConnected)return;x<50?finish("Team talk","You whispered. So gently that three players fell asleep and the physio tucked them in. One of them is still there.",{squad:-7,press:4,fans:-3})
+   :finish("Team talk","You booted the tea urn. It was full. It was the kit man's. It was his grandmother's. Two players are now 'unavailable due to tea'.",{squad:-6,fans:7,board:-5})},1100)}}
+const GAMES=[gFormation,gTransfer,gPress,gSub,gVar,gTalk];
+
+/* ---------- the gaffer (canvas) ---------- */
+const cv=$("#face"),cx=cv.getContext("2d");let shock=0,T=0,lastT=0;
+function mix(a,b,t){return a.map((v,i)=>Math.round(v+(b[i]-v)*t))}
+function drawFace(now){const dt=Math.min(.05,(now-lastT)/1000);lastT=now;T+=dt;shock=Math.max(0,shock-dt*1.5);
+ const dpr=Math.min(2,window.devicePixelRatio||1),w=cv.clientWidth,h=cv.clientHeight;if(cv.width!=w*dpr||cv.height!=h*dpr){cv.width=w*dpr;cv.height=h*dpr}
+ cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,w,h);cx.lineCap="round";
+ const m=mood(),st=1-m,bald=state=="title"?0:Math.min(1,week/22),r=h*.34,j=st*2+shock*10;
+ const X=w/2+(Math.random()*2-1)*j,Y=h*.44+Math.sin(T*2)*3+(Math.random()*2-1)*j,ink="#1a1010";
+ const circ=(x,y,rr,c)=>{cx.fillStyle=c;cx.beginPath();cx.arc(x,y,rr,0,7);cx.fill()};
+ const line=(a,b,c,d,wd,col)=>{cx.strokeStyle=col||ink;cx.lineWidth=wd;cx.beginPath();cx.moveTo(a,b);cx.lineTo(c,d);cx.stroke()};
+ const sy=Y+r*.95;cx.fillStyle="#22222c";cx.beginPath();cx.moveTo(X-r*1.6,h);cx.lineTo(X-r*.9,sy);cx.lineTo(X+r*.9,sy);cx.lineTo(X+r*1.6,h);cx.fill();
+ cx.fillStyle="#fff";cx.beginPath();cx.moveTo(X-r*.3,sy);cx.lineTo(X+r*.3,sy);cx.lineTo(X,sy+r*.6);cx.fill();
+ for(let i=0;i<6;i++){cx.fillStyle=i%2?"#ffd21f":"#d81e1e";cx.fillRect(X-r*.75+i*r*.25,sy-r*.12,r*.25,r*.26)}
+ cx.fillStyle="#d81e1e";cx.fillRect(X+r*.35,sy,r*.24,r*.7+Math.sin(T*3)*3);
+ const skin="rgb("+mix([242,201,160],[226,84,63],Math.max(0,Math.min(1,st*1.2-.2)))+")";
+ circ(X-r,Y,r*.2,skin);circ(X+r,Y,r*.2,skin);circ(X,Y,r,skin);
+ const n=Math.round(17*(1-bald));for(let i=0;i<n;i++){const a=(-160+140*((i*7%17)/16))*Math.PI/180,wb=Math.sin(T*3+i)*.25*(.3+st),L=r*(.38+.1*Math.sin(i*1.7));
+  line(X+Math.cos(a)*r*.95,Y+Math.sin(a)*r*.95,X+Math.cos(a)*r*.95+Math.cos(a+wb)*L,Y+Math.sin(a)*r*.95+Math.sin(a+wb)*L,4,"#4a3020")}
+ const er=r*(.2+.1*st),ey=Y-r*.15;for(const s of[-1,1]){const exx=X+s*r*.38;
+  if(bald>.35){cx.strokeStyle="rgba(80,30,80,.45)";cx.lineWidth=3;cx.beginPath();cx.arc(exx,ey+er*.5,er,.2,Math.PI-.2);cx.stroke()}
+  circ(exx,ey,er,"#fff");circ(exx+Math.sin(T*1.3+s)*er*.3+(Math.random()*2-1)*st*2,ey+Math.cos(T*.9)*er*.3+(Math.random()*2-1)*st*2,er*(.42-.22*st),ink);
+  const tl=(-.25+.8*st)*s,by=ey-er*1.45,dx=Math.cos(tl)*er*1.1,dy=Math.sin(tl)*er*1.1;line(exx-dx,by-dy,exx+dx,by+dy,5)}
+ const my=Y+r*.45,mw=r*.42;cx.strokeStyle=ink;cx.lineWidth=4.5;cx.beginPath();
+ if(m>.58){cx.arc(X,my-mw*.5,mw,.2*Math.PI,.8*Math.PI);cx.stroke()}else if(m>.4){cx.moveTo(X-mw*.8,my+Math.sin(T*6)*2);cx.lineTo(X+mw*.8,my-Math.sin(T*6)*2);cx.stroke()}
+ else if(m>.2){cx.arc(X,my+mw*.9,mw,1.2*Math.PI,1.8*Math.PI);cx.stroke()}else{circ(X,my,mw*(.55+.1*Math.sin(T*14)),ink);circ(X,my+mw*.25,mw*.25,"#c0392b")}
+ for(let i=0;i<Math.floor(st*6);i++){const ph=(T*.9+i*.37)%1,sx=X+(r*.8+(i%3)*9)*(i%2?-1:1),py=Y-r*.7+ph*r*1.3;cx.globalAlpha=1-ph;circ(sx,py,4,"#73ccff");
+  cx.beginPath();cx.moveTo(sx-3.5,py-1.5);cx.lineTo(sx+3.5,py-1.5);cx.lineTo(sx,py-10);cx.fill();cx.globalAlpha=1}
+ requestAnimationFrame(drawFace)}
+requestAnimationFrame(drawFace);
+document.addEventListener("touchmove",e=>{if(!e.target.closest("#panel")||e.target.closest(".pitch"))e.preventDefault()},{passive:false});
+title();
+</script>
+</body>
+</html>

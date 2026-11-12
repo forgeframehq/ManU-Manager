@@ -1,5 +1,11 @@
 # ManU Manager
 
+**Play in a browser:** open `index.html` (single file, built for phone screens). It adds touch mini-games on top of the desk events: a formation board that 'auto-corrects' you to 2 at the back, a transfer market, press conferences, substitutions, VAR and team talks.
+
+Edit `web/template.html` (game) or `events.gd` (desk events), then run `python3 tools/build.py .` to regenerate `index.html`.
+
+The Godot version below has the desk events only.
+
 A goofy portrait-mode Godot 4 game: you are the new ManU manager. How long will you last?
 
 Every week something ridiculous lands on your desk. Pick one of two terrible options and try to keep
